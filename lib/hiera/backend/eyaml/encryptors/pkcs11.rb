@@ -59,7 +59,7 @@ class Hiera
             pkcs11 = PKCS11.open(hsm_library)
             p pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
             pkcs11.active_slots.first.open do |session|
-              session.login(hsm_username,hsm_password)
+              session.login(hsm_usertype,hsm_password)
               secret_key = session.generate_key(
                 hsm_mechanism,
                 :ENCRYPT=>true,
