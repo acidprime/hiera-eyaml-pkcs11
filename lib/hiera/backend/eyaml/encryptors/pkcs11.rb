@@ -71,7 +71,7 @@ class Hiera
                 # Encode the resulting encrypted string as Base64
                 result = Base64.encode64(result)
               elsif action == :decrypt
-                # Decode Base64 text and descript original plaintext and return
+                # Decode Base64 text and decrypt original plaintext and return
                 result = session.decrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,Base64.decode64(text))
               end
               session.logout
