@@ -21,7 +21,7 @@ class Hiera
                                 :type => :string,
                                 :default => :DES2_KEY_GEN },
 
-            :hsm_library => { :desc => "HSM Shared object library",
+            :hsm_library => { :desc => "HSM Shared object library path",
                               :type => :string,
                               :default => "/opt/nfast/toolkits/pkcs11/libcknfast.so" },
 
