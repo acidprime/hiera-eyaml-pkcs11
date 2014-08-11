@@ -19,7 +19,7 @@ class Hiera
 
             :hsm_mechanism => { :desc => "Key generation mechanism",
                                 :type => :string,
-                                :default => :DES2_KEY_GEN },
+                                :default => "#{:DES2_KEY_GEN}" },
 
             :hsm_library => { :desc => "HSM Shared object library path",
                               :type => :string,
@@ -28,7 +28,7 @@ class Hiera
 
             :hsm_usertype => { :desc => "HSM Softcard user type CKU_<foo>",
                                :type => :string,
-                               :default => :USER },
+                               :default => "#{:USER}" },
 
             :hsm_password => { :desc => "HSM Softcard Password",
                                :type => :string,
