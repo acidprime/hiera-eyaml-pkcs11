@@ -69,11 +69,13 @@ class Hiera
                 :LABEL=>"#{Time.Now}")
               if action == :encrypt
                 result = session.encrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,text)
+                # Encode the resulting encrypted string as Base64
+                Base64.encode64(result)
               elsif action == :decrypt
-                result = session.decrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,text)
+                # Decode Base64 text and descript original plaintext and return
+                result = session.decrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,Base64.decode64(text))
               end
               session.logout
-              result
             end
           end
 
