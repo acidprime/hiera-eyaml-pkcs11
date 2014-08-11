@@ -24,9 +24,9 @@ class Hiera
                               :default => "/opt/nfast/toolkits/pkcs11/libcknfast.so" },
 
 
-            :hsm_username => { :desc => "HSM Softcard Session Username",
+            :hsm_usertype => { :desc => "HSM Softcard user type CKU_<foo>",
                                :type => :string,
-                               :default => "baduser" },
+                               :default => :USER },
 
             :hsm_password => { :desc => "HSM Softcard Password",
                                :type => :string,
@@ -45,11 +45,11 @@ class Hiera
 
           def self.session(action,text)
 
-            hsm_username = self.option :hsm_username
+            hsm_usertype = self.option :hsm_usertype
             hsm_password = self.option :hsm_password
             hsm_library  = self.option :hsm_library
 
-            raise StandardError, "hsm_username is not defined"  unless hsm_username
+            raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
             raise StandardError, "hsm_password is not defined"  unless hsm_password
             raise StandardError, "hsm_library is not defined"   unless hsm_library
 
