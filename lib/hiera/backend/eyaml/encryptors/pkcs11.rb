@@ -66,7 +66,7 @@ class Hiera
                 :DECRYPT=>true,
                 :SENSITIVE=>true,
                 :TOKEN=>true,
-                :LABEL=>"#{Time.Now}")
+                :LABEL=>"#{Time.now}")
               if action == :encrypt
                 result = session.encrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,text)
                 # Encode the resulting encrypted string as Base64
