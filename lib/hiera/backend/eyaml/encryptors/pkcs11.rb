@@ -54,6 +54,7 @@ class Hiera
             raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
             raise StandardError, "hsm_password is not defined"  unless hsm_password
             raise StandardError, "hsm_library is not defined"   unless hsm_library
+            raise StandardError, "hsm_mechanism is not defined" unless hsm_mechanism
 
             pkcs11 = PKCS11.open(hsm_library)
             p pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
