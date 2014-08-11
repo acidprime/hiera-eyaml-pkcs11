@@ -4,20 +4,23 @@ require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
 require "rubygems"
 require "pkcs11"
-include PKCS11
 
 
 class Hiera
   module Backend
     module Eyaml
       module Encryptors
-
         class Pkcs11 < Encryptor
-
+          include PKCS11
           self.options = {
+
             :offline_publickey => { :desc => "Local path to the Public key used in offline mode",
+                                    :type => :string,
+                                    :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
+
+            :hsm_mechanism => { :desc => "Key generation mechanism",
                                 :type => :string,
-                                :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
+                                :default => :DES2_KEY_GEN },
 
             :hsm_library => { :desc => "HSM Shared object library",
                               :type => :string,
@@ -45,10 +48,10 @@ class Hiera
 
           def self.session(action,text)
 
-            hsm_usertype = self.option :hsm_usertype
-            hsm_password = self.option :hsm_password
-            hsm_library  = self.option :hsm_library
-
+            hsm_usertype  = self.option :hsm_usertype
+            hsm_password  = self.option :hsm_password
+            hsm_library   = self.option :hsm_library
+            hsm_mechanism = self.option :hsm_mechanism
             raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
             raise StandardError, "hsm_password is not defined"  unless hsm_password
             raise StandardError, "hsm_library is not defined"   unless hsm_library
@@ -58,12 +61,12 @@ class Hiera
             pkcs11.active_slots.first.open do |session|
               session.login(hsm_username,hsm_password)
               secret_key = session.generate_key(
-                :DES2_KEY_GEN,
+                hsm_mechanism,
                 :ENCRYPT=>true,
                 :DECRYPT=>true,
                 :SENSITIVE=>true,
                 :TOKEN=>true,
-                :LABEL=>Time.Now)
+                :LABEL=>"#{Time.Now}")
               if action == :encrypt
                 result = session.encrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,text)
               elsif action == :decrypt
