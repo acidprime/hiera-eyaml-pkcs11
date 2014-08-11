@@ -3,7 +3,6 @@ require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
 require "rubygems"
 require "pkcs11"
-require 'base64'
 
 class Hiera
   module Backend
@@ -58,22 +57,21 @@ class Hiera
 
             pkcs11 = PKCS11.open(hsm_library)
             p pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
-            pkcs11.active_slots.first.open do |session|
+            puts "SLOTS: #{pkcs11.active_slots}"
+            pkcs11.active_slots[3].open do |session|
               session.login(hsm_usertype,hsm_password)
-              secret_key = session.generate_key(
-                hsm_mechanism,
-                :ENCRYPT=>true,
-                :DECRYPT=>true,
-                :SENSITIVE=>true,
-                :TOKEN=>true,
-                :LABEL=>"#{Time.now}")
+              
+              public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).first
+              private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).first
+              puts "Found private key: #{private_key[:LABEL]}"
+              puts "Found public key:  #{public_key[:LABEL]}"
+             
               if action == :encrypt
-                result = session.encrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,text)
-                # Encode the resulting encrypted string as Base64
-                result = Base64.encode64(result)
+                puts "Session: #{session.info.inspect}"
+                result = session.encrypt(:RSA_PKCS,public_key,text)
               elsif action == :decrypt
                 # Decode Base64 text and decrypt original plaintext and return
-                result = session.decrypt( {:DES3_CBC_PAD=>"\0"*8}, secret_key,Base64.decode64(text))
+                result = session.decrypt( :RSA_PKCS,private_key,text)
               end
               session.logout
               result
