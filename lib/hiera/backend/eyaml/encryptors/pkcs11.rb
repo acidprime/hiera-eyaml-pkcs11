@@ -12,13 +12,16 @@ class Hiera
           include PKCS11
           self.options = {
 
+
+            :offline => { :desc => "Work in offline mode using offline publickey",
+                          :type => :boolean,
+                          :default => false },
+
+
             :offline_publickey => { :desc => "Local path to the Public key used in offline mode",
                                     :type => :string,
                                     :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
 
-            :hsm_mechanism => { :desc => "Key generation mechanism",
-                                :type => :string,
-                                :default => "#{:DES2_KEY_GEN}" },
 
             :hsm_library => { :desc => "HSM Shared object library path",
                               :type => :string,
@@ -49,11 +52,9 @@ class Hiera
             hsm_usertype  = self.option :hsm_usertype
             hsm_password  = self.option :hsm_password
             hsm_library   = self.option :hsm_library
-            hsm_mechanism = self.option :hsm_mechanism
             raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
             raise StandardError, "hsm_password is not defined"  unless hsm_password
             raise StandardError, "hsm_library is not defined"   unless hsm_library
-            raise StandardError, "hsm_mechanism is not defined" unless hsm_mechanism
 
             pkcs11 = PKCS11.open(hsm_library)
             p pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
