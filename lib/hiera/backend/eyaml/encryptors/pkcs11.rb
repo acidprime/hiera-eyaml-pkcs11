@@ -1,10 +1,9 @@
-require 'base64'
 require 'hiera/backend/eyaml/encryptor'
 require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
 require "rubygems"
 require "pkcs11"
-
+require 'base64'
 
 class Hiera
   module Backend
