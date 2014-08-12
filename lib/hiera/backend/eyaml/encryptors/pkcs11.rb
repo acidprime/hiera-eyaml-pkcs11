@@ -10,13 +10,17 @@ class Hiera
         class Pkcs11 < Encryptor
           self.options = {
 
+            :mode    => { :desc    => "What mode <pkcs11|chil|openssl> should be used to (de|en)crypt the values",
+                          :type    => :string,
+                          :default => 'chil' },
+
             :slot_id => { :desc    => "The slot to use for the session",
-                            :type    => :integer,
-                            :default => 4 },
+                          :type    => :integer,
+                          :default => 4 },
 
             :key_label => { :desc    => "The label of the public/private key to use",
                             :type    => :string,
-                            :default => "badkeyname" },
+                            :default => "badkeylabel" },
 
             :offline => { :desc    => "Work in offline mode using offline publickey",
                           :type    => :boolean,
@@ -43,12 +47,93 @@ class Hiera
 
           self.tag = "PKCS11"
 
-          def self.encrypt plaintext
-             self.session(:encrypt,plaintext)
+          def self.encrypt(plaintext)
+            
+             self.checksize(plaintext)
+             
+             case self.option(:mode)
+             when 'chil'
+               result = self.chil(:encrypt,plaintext)
+             when 'pkcs11'
+               result = self.session(:encrypt,plaintext)
+             else
+               raise "Invalid mode specified #{self.option(:mode)}"
+             end
+             result
           end
 
-          def self.decrypt ciphertext
-             self.session(:decrypt,ciphertext)
+          def self.decrypt(ciphertext)
+             case self.option(:mode)
+             when 'chil'
+               result = self.chil(:decrypt,ciphertext)
+             when 'pkcs11'
+               result = self.session(:decrypt,ciphertext)
+             else
+               raise "Invalid mode specified #{self.option(:mode)}"
+             end
+             result
+          end
+
+
+          def self.checksize(text)
+            # This limit seems to be within one byte of either methodology
+            if text.bytesize > 244
+              raise "Byte limit exceeded ( #{text.bytesize} > 244 )"
+            end
+          end
+
+
+          def self.wait_for_prompt(cout)
+            buffer = ""
+            begin
+            loop { buffer << cout.getc.chr; break if buffer =~ /Enter pass phrase:/}
+            rescue
+            end
+            return buffer
+          end
+
+
+          def self.chil(action,text)
+            require 'pty'
+            require 'shellwords'
+            require 'base64'
+
+            hsm_password  = self.option :hsm_password
+
+            encrypt = "echo #{Shellwords.shellescape(text)} |
+            /opt/nfast/bin/ppmk --preload puppet-hiera-uat /usr/bin/openssl rsautl \
+             -engine chil \
+            -inkey rsa-puppethierauatkey \
+            -keyform engine \
+            -encrypt | /usr/bin/base64"
+            
+            decrypt = "echo #{Shellwords.shellescape(Base64.encode64(text))} | base64 -d |
+            /opt/nfast/bin/ppmk --preload puppet-hiera-uat /usr/bin/openssl rsautl \
+             -engine chil \
+            -inkey rsa-puppethierauatkey \
+            -keyform engine \
+            -decrypt"
+
+            if action == :encrypt
+               command = encrypt 
+               regex   = /(.*engine "chil" set\..*\n)([\r\n\S]+)/ 
+            elsif action == :decrypt
+               command = decrypt 
+               regex   = /(.*engine "chil" set\..*\n)(.*(\n.*)+)/
+            end 
+            
+            PTY.spawn(command) do |openssl_out,openssl_in,pid|
+              self.wait_for_prompt(openssl_out)
+              openssl_in.printf("#{hsm_password}\n")
+              output = self.wait_for_prompt(openssl_out)
+              if match = output.match(regex)
+                header,cryptogram = match.captures
+                cryptogram = Base64.decode64(cryptogram) if action == :encrypt
+              else
+                raise "Unable to parse output:\n #{output}"
+              end
+              return cryptogram 
+            end
           end
 
           def self.session(action,text)
@@ -67,7 +152,6 @@ class Hiera
             # Convert slotid from Human to array value
             pkcs11.active_slots[(slot_id - 1 )].open do |session|
               session.login(hsm_usertype,hsm_password)
-              puts session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).first[:LABEL]
               public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
               private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).select { |obj| obj[:LABEL] == key_label}.first
 
