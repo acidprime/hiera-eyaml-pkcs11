@@ -66,17 +66,12 @@ class Hiera
 
             pkcs11 = PKCS11.open(hsm_library)
 
-            puts pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
-            puts "SLOTS: #{pkcs11.active_slots}"
-            
             # Convert slotid from Human to array value
             pkcs11.active_slots[(slot_id - 1 )].open do |session|
               session.login(hsm_usertype,hsm_password)
               
-              public_key = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
+              public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
               private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).select { |obj| obj[:LABEL] == key_label}.first
-              puts "Found private key: #{private_key[:LABEL]}"
-              puts "Found public key:  #{public_key[:LABEL]}"
              
               if action == :encrypt
                 result = session.encrypt(:RSA_PKCS,public_key,text)
