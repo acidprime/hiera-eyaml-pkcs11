@@ -66,10 +66,13 @@ class Hiera
             # Convert slotid from Human to array value
             pkcs11.active_slots[(slot_id - 1 )].open do |session|
               session.login(hsm_usertype,hsm_password)
-              
+              puts session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).first[:LABEL]
               public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
               private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).select { |obj| obj[:LABEL] == key_label}.first
-             
+
+              raise "No public key found for label #{key_label}" if public_key.nil?
+              raise "No private key found for label #{key_label}" if private_key.nil?
+
               if action == :encrypt
                 result = session.encrypt(:RSA_PKCS,public_key,text)
               elsif action == :decrypt
