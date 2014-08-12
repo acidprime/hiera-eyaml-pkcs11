@@ -2,14 +2,12 @@ require 'hiera/backend/eyaml/encryptor'
 require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
 require "rubygems"
-require "pkcs11"
 
 class Hiera
   module Backend
     module Eyaml
       module Encryptors
         class Pkcs11 < Encryptor
-          include PKCS11
           self.options = {
 
             :slot_id => { :desc    => "The slot to use for the session",
@@ -36,7 +34,7 @@ class Hiera
 
             :hsm_usertype => { :desc    => "HSM Softcard user type CKU_<foo>",
                                :type    => :string,
-                               :default => "#{:USER}" },
+                               :default => "USER" },
 
             :hsm_password => { :desc    => "HSM Softcard Password",
                                :type    => :string,
@@ -54,6 +52,9 @@ class Hiera
           end
 
           def self.session(action,text)
+
+            require "pkcs11"
+            include PKCS11
 
             hsm_usertype  = self.option :hsm_usertype
             hsm_password  = self.option :hsm_password
