@@ -60,9 +60,6 @@ class Hiera
             hsm_library   = self.option :hsm_library
 	    key_label     = self.option :key_label
             slot_id       = self.option :slot_id
-            raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
-            raise StandardError, "hsm_password is not defined"  unless hsm_password
-            raise StandardError, "hsm_library is not defined"   unless hsm_library
 
             pkcs11 = PKCS11.open(hsm_library)
 
