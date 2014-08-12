@@ -13,27 +13,32 @@ class Hiera
           self.options = {
 
 
-            :offline => { :desc => "Work in offline mode using offline publickey",
-                          :type => :boolean,
+            :key_label => { :desc    => "The label of the public/private key to use",
+                            :type    => :string,
+                            :default => "badkeyname" },
+
+
+            :offline => { :desc    => "Work in offline mode using offline publickey",
+                          :type    => :boolean,
                           :default => false },
 
 
-            :offline_publickey => { :desc => "Local path to the Public key used in offline mode",
-                                    :type => :string,
+            :offline_publickey => { :desc    => "Local path to the Public key used in offline mode",
+                                    :type    => :string,
                                     :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
 
 
-            :hsm_library => { :desc => "HSM Shared object library path",
-                              :type => :string,
+            :hsm_library => { :desc    => "HSM Shared object library path",
+                              :type    => :string,
                               :default => "/opt/nfast/toolkits/pkcs11/libcknfast.so" },
 
 
-            :hsm_usertype => { :desc => "HSM Softcard user type CKU_<foo>",
-                               :type => :string,
+            :hsm_usertype => { :desc    => "HSM Softcard user type CKU_<foo>",
+                               :type    => :string,
                                :default => "#{:USER}" },
 
-            :hsm_password => { :desc => "HSM Softcard Password",
-                               :type => :string,
+            :hsm_password => { :desc    => "HSM Softcard Password",
+                               :type    => :string,
                                :default => "badpassword" },
           }
 
@@ -52,18 +57,21 @@ class Hiera
             hsm_usertype  = self.option :hsm_usertype
             hsm_password  = self.option :hsm_password
             hsm_library   = self.option :hsm_library
+            key_label     = self.option :key_label
             raise StandardError, "hsm_usertype is not defined"  unless hsm_usertype
             raise StandardError, "hsm_password is not defined"  unless hsm_password
             raise StandardError, "hsm_library is not defined"   unless hsm_library
 
             pkcs11 = PKCS11.open(hsm_library)
-            p pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
+
+            puts pkcs11.info  # => #<PKCS11::CK_INFO cryptokiVersion=...>
             puts "SLOTS: #{pkcs11.active_slots}"
+
             pkcs11.active_slots[3].open do |session|
               session.login(hsm_usertype,hsm_password)
               
-              public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).first
-              private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).first
+              public_key = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
+              private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).select { |obj| obj[:LABEL] == key_label}.first
               puts "Found private key: #{private_key[:LABEL]}"
               puts "Found public key:  #{public_key[:LABEL]}"
              
