@@ -30,9 +30,9 @@ class Hiera
                                 :type    => :string,
                                 :default => "badkeylabel" },
 
-            :rsa_pubkey    => { :desc    => "Local path to the rsa publich key (openssl mode only)",
+            :public_key    => { :desc    => "Local path to the rsa public key (openssl mode only)",
                                 :type    => :string,
-                                :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
+                                :default => "./keys/public_key.pkcs11.pem" },
 
             :hsm_library   => { :desc    => "HSM Shared object library path (pkcs11 mode only)",
                                 :type    => :string,
@@ -49,6 +49,8 @@ class Hiera
 
           self.tag = "PKCS11"
 
+          # Eyaml encryptor methods
+
           def self.encrypt(plaintext)
             
              self.checksize(plaintext)
@@ -58,6 +60,8 @@ class Hiera
                result = self.chil(:encrypt,plaintext)
              when 'pkcs11'
                result = self.session(:encrypt,plaintext)
+             when 'openssl'
+               result = self.openssl(:encrypt,plaintext)
              else
                raise "Invalid mode specified #{self.option(:mode)}"
              end
@@ -71,12 +75,22 @@ class Hiera
                result = self.chil(:decrypt,ciphertext)
              when 'pkcs11'
                result = self.session(:decrypt,ciphertext)
+             when 'openssl'
+               result = self.openssl(:decrypt,ciphertext)
              else
                raise "Invalid mode specified #{self.option(:mode)}"
              end
              result
           end
 
+          #self.create_keys
+          #    #    pub_key, priv_key = session.generate_key_pair(:RSA_PKCS_KEY_PAIR_GEN,
+          #    #          {:MODULUS_BITS=>2048, :PUBLIC_EXPONENT=>[3].pack("N"), :TOKEN=>false},
+          #    #                {})
+          #   raise StandardError, "Not implemented"
+          #end
+
+          # Helper methods
 
           def self.checksize(text)
             # This limit seems to be within one byte of either methodology
@@ -94,13 +108,13 @@ class Hiera
             # so that the openssl command can continue to use stdin
             buffer = ""
             begin
-            loop { buffer << cout.getc.chr; break if buffer =~ /Enter pass phrase:/}
+              loop { buffer << cout.getc.chr; break if buffer =~ /Enter pass phrase:/}
             rescue
             end
             return buffer
           end
 
-
+          # Mode methods
           def self.chil(action,text)
             require 'pty'
             require 'shellwords'
@@ -135,13 +149,14 @@ class Hiera
                regex   = /(.*engine "chil" set\..*\n)([\r\n\S]+)/ 
             elsif action == :decrypt
                command = decrypt 
-               regex   = /(.*engine "chil" set\..*\n)(.*(\n.*)+)/
+               regex   = /(.*engine "chil" set\..*\n)(.*(\n.*)?)/
             end 
 
             # Type the passphase in the session and run the command with the
             # stdin being the plaintext or cryptogram. The encrypted value
             # gets wrapped in base64 to help with the shell but as eyaml
             # itself will wrap we decode it and hand back the raw to eyaml
+            # , if we are encrypting the value ( decryption is the original)
 
 
             PTY.spawn(command) do |openssl_out,openssl_in,pid|
@@ -152,7 +167,7 @@ class Hiera
                 header,cryptogram = match.captures
                 cryptogram = Base64.decode64(cryptogram) if action == :encrypt
               else
-                raise "Unable to parse output:\n #{output}"
+                raise "Unable to parse output:\n #{output} \n with regex #{regex.to_s}"
               end
               return cryptogram 
             end
@@ -198,14 +213,28 @@ class Hiera
               result
             end
           end
+          
+          def self.openssl(action,text)
 
-          def self.create_keys
-              #    pub_key, priv_key = session.generate_key_pair(:RSA_PKCS_KEY_PAIR_GEN,
-              #          {:MODULUS_BITS=>2048, :PUBLIC_EXPONENT=>[3].pack("N"), :TOKEN=>false},
-              #                {})
-             raise StandardError, "Not implemented"
+            # This mode allows offline encyption simply using the openssl gem
+            # and a RSA gem. This method will not work master side in PE 3.4
+            # likely (see notes in self.session) however it will work on desktops
+            # Such as Mac OS X , to allow users to encrypt values.
+
+            require 'openssl'
+            public_key_path = self.option :public_key 
+            public_key      = File.open(public_key_path,"rb").read
+            puts "Found Public key: #{public_key}" 
+            rsa = OpenSSL::PKey::RSA.new(public_key)
+
+            if action == :encrypt
+              result = rsa.public_encrypt(text)
+            elsif action == :decrypt
+             raise "Decryption is not supported using openssl as you don't have access to the hsm" 
+            end
+            result
           end
-         end
+        end
       end
     end
   end
