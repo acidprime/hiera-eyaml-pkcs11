@@ -260,6 +260,8 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
   # This is only required if you want pkcs7 functional as well
   # hiera 1.3 does allow for variable interpolation function
   # calls so you could encrypt pkcs11_hsm_password with pkcs7
+  # However this is not supported for hiera.yaml see:
+  # https://tickets.puppetlabs.com/browse/HI-220
   # Note the use of ssl instead of "secure" in the path as
   # is the default in the eyaml README file.
 
