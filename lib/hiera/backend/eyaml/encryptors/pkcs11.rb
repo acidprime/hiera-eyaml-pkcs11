@@ -10,39 +10,41 @@ class Hiera
         class Pkcs11 < Encryptor
           self.options = {
 
-            :mode    => { :desc    => "What mode <pkcs11|chil|openssl> should be used to (de|en)crypt the values",
-                          :type    => :string,
-                          :default => 'chil' },
+            :mode          => { :desc    => "What mode <pkcs11|chil|openssl> should be used to (de|en)crypt the values",
+                                :type    => :string,
+                                :default => 'chil' },
 
-            :slot_id => { :desc    => "The slot to use for the session",
-                          :type    => :integer,
-                          :default => 4 },
+            :hsm_slot_id   => { :desc    => "The slot to use for the session (pkcs11 mode only)",
+                                :type    => :integer,
+                                :default => 4 },
 
-            :key_label => { :desc    => "The label of the public/private key to use",
-                            :type    => :string,
-                            :default => "badkeylabel" },
+            :key_label     => { :desc    => "The label of the public/private key to use (pkcs11 mode only)",
+                                :type    => :string,
+                                :default => "badkeylabel" },
 
-            :offline => { :desc    => "Work in offline mode using offline publickey",
-                          :type    => :boolean,
-                          :default => false },
+            :chil_softcard => { :desc    => "The softcard to preload into chil (chil mode only)",
+                                :type    => :string,
+                                :default => "badsoftcard" },
 
-            :offline_publickey => { :desc    => "Local path to the Public key used in offline mode",
-                                    :type    => :string,
-                                    :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
+            :chil_rsakey   => { :desc    => "The rsa key to use in chil ( chil mode only )",
+                                :type    => :string,
+                                :default => "badkeylabel" },
 
+            :rsa_pubkey    => { :desc    => "Local path to the rsa publich key (openssl mode only)",
+                                :type    => :string,
+                                :default => "/etc/puppetlabs/puppet/ssl/keys/pkcs11.publickey.pem" },
 
-            :hsm_library => { :desc    => "HSM Shared object library path",
-                              :type    => :string,
-                              :default => "/opt/nfast/toolkits/pkcs11/libcknfast.so" },
+            :hsm_library   => { :desc    => "HSM Shared object library path (pkcs11 mode only)",
+                                :type    => :string,
+                                :default => "/opt/nfast/toolkits/pkcs11/libcknfast.so" },
 
+            :hsm_usertype  => { :desc    => "HSM Softcard user type CKU_<foo> (pkcs11 mode only)",
+                                :type    => :string,
+                                :default => "USER" },
 
-            :hsm_usertype => { :desc    => "HSM Softcard user type CKU_<foo>",
-                               :type    => :string,
-                               :default => "USER" },
-
-            :hsm_password => { :desc    => "HSM Softcard Password",
-                               :type    => :string,
-                               :default => "badpassword" },
+            :hsm_password  => { :desc    => "HSM Softcard Password (pkcs11 mode only)",
+                                :type    => :string,
+                                :default => "badpassword" },
           }
 
           self.tag = "PKCS11"
@@ -63,6 +65,7 @@ class Hiera
           end
 
           def self.decrypt(ciphertext)
+
              case self.option(:mode)
              when 'chil'
                result = self.chil(:decrypt,ciphertext)
@@ -77,6 +80,8 @@ class Hiera
 
           def self.checksize(text)
             # This limit seems to be within one byte of either methodology
+            # This is an internal check to stop the trace from the vendor
+            # or invalid output in the case of the openssl chil methodology
             if text.bytesize > 244
               raise "Byte limit exceeded ( #{text.bytesize} > 244 )"
             end
@@ -84,6 +89,9 @@ class Hiera
 
 
           def self.wait_for_prompt(cout)
+            # This is based on the output of /opt/nfast/bin/ppmk
+            # This will basically allow us to type the passphase in
+            # so that the openssl command can continue to use stdin
             buffer = ""
             begin
             loop { buffer << cout.getc.chr; break if buffer =~ /Enter pass phrase:/}
@@ -98,21 +106,29 @@ class Hiera
             require 'shellwords'
             require 'base64'
 
-            hsm_password  = self.option :hsm_password
+            hsm_password   = self.option :hsm_password
+            chil_softcard  = self.option :chil_softcard
+            chil_rsakey    = self.option :chil_rsakey
+
+            # TODO: Could turn this into an array and use << as the commands are about the same. 
 
             encrypt = "echo #{Shellwords.shellescape(text)} |
-            /opt/nfast/bin/ppmk --preload puppet-hiera-uat /usr/bin/openssl rsautl \
+            /opt/nfast/bin/ppmk --preload #{Shellwords.shellescape(chil_softcard)} /usr/bin/openssl rsautl \
              -engine chil \
-            -inkey rsa-puppethierauatkey \
+            -inkey #{Shellwords.shellescape(chil_rsakey)} \
             -keyform engine \
             -encrypt | /usr/bin/base64"
             
             decrypt = "echo #{Shellwords.shellescape(Base64.encode64(text))} | base64 -d |
-            /opt/nfast/bin/ppmk --preload puppet-hiera-uat /usr/bin/openssl rsautl \
+            /opt/nfast/bin/ppmk --preload #{Shellwords.shellescape(chil_softcard)} /usr/bin/openssl rsautl \
              -engine chil \
-            -inkey rsa-puppethierauatkey \
+            -inkey #{Shellwords.shellescape(chil_rsakey)} \
             -keyform engine \
             -decrypt"
+
+            # Scrape the output of the ssl command, in the case of encrypt its a
+            # a base64 encoded string, in the case of decryption its everything
+            # after the header. This has been tested with multi line input
 
             if action == :encrypt
                command = encrypt 
@@ -121,7 +137,13 @@ class Hiera
                command = decrypt 
                regex   = /(.*engine "chil" set\..*\n)(.*(\n.*)+)/
             end 
-            
+
+            # Type the passphase in the session and run the command with the
+            # stdin being the plaintext or cryptogram. The encrypted value
+            # gets wrapped in base64 to help with the shell but as eyaml
+            # itself will wrap we decode it and hand back the raw to eyaml
+
+
             PTY.spawn(command) do |openssl_out,openssl_in,pid|
               self.wait_for_prompt(openssl_out)
               openssl_in.printf("#{hsm_password}\n")
@@ -138,20 +160,29 @@ class Hiera
 
           def self.session(action,text)
 
+            # This does a direct pkcs11 call through the gem. This will likely not work
+            # in Puppet Enterprise 3.4 because gems with native c extentions will not work
+            # with jruby and thats what the master will be running when it calls hiera.
+
             require "pkcs11"
             include PKCS11
 
             hsm_usertype  = self.option :hsm_usertype
             hsm_password  = self.option :hsm_password
             hsm_library   = self.option :hsm_library
-	    key_label     = self.option :key_label
-            slot_id       = self.option :slot_id
+            hsm_slot_id   = self.option :hsm_slot_id
+	    
+            key_label     = self.option :key_label
 
+            # Load the shared object library from the vendor
             pkcs11 = PKCS11.open(hsm_library)
 
             # Convert slotid from Human to array value
-            pkcs11.active_slots[(slot_id - 1 )].open do |session|
+            pkcs11.active_slots[(hsm_slot_id - 1 )].open do |session|
               session.login(hsm_usertype,hsm_password)
+
+
+              # Find the public and private key based on their label.
               public_key  = session.find_objects(:CLASS => PKCS11::CKO_PUBLIC_KEY).select { |obj| obj[:LABEL] == key_label}.first
               private_key = session.find_objects(:CLASS => PKCS11::CKO_PRIVATE_KEY).select { |obj| obj[:LABEL] == key_label}.first
 
