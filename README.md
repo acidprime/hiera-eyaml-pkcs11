@@ -267,7 +267,7 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
     user    => 'pe-puppet',
     path    => "${::path}:/opt/puppet/bin",
     cwd     => '/etc/puppetlabs/puppet/ssl',
-    command => 'eyaml createkeys',
+    command => 'eyaml createkeys --encrypt-method pkcs7',
     creates => '/etc/puppetlabs/puppet/ssl/keys/private_key.pkcs7.pem',
     require =>  Class['::hiera'],
   }
