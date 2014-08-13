@@ -74,12 +74,22 @@ eyaml encrypt \
 :eyaml:
   :datadir: /etc/puppetlabs/puppet/hiera/%{environment}/
   :pkcs11_mode: 'pkcs11'
-  :pkcs11_key_label: 'puppet-hiera-uat-key' 
-  :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase' 
+  :pkcs11_key_label: 'puppet-hiera-uat-key'
+  :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
   :extension: 'yaml'
 ```
 
 _Note: The difference of dash vs underscore in the key names_
+
+This mode was tested with:
+
+```
+Red Hat Enterprise Linux release 6.5 (Santiago)
+Puppet 3.6.2 (Puppet Enterprise 3.3.0)
+Hiera Eyaml Gem (2.0.2)
+Pkcs11 Gem (0.2.4)
+Ruby (1.9.3.3p484)
+```
 
 #CHIL mode
 
@@ -120,6 +130,16 @@ eyaml encrypt \
 
 _Note: The difference of dash vs underscore in the key names_
 
+This mode was tested with:
+
+```
+Red Hat Enterprise Linux release 6.5 (Santiago)
+Puppet 3.6.2 (Puppet Enterprise 3.3.0)
+Hiera Eyaml Gem (2.0.2)
+Pkcs11 Gem (0.2.4)
+Ruby (1.9.3.3p484)
+```
+
 # Openssl mode
 
 This mode uses the openssl gem to allow for offline encryption to take place using just the export rsa public key.
@@ -148,6 +168,108 @@ eyaml encrypt \
 ```
 
 _Note: The difference of dash vs underscore in the key names_
+
+#### Linux
+
+This mode was tested with:
+
+```
+Red Hat Enterprise Linux release 6.5 (Santiago)
+Puppet 3.6.2 (Puppet Enterprise 3.3.0)
+Hiera Eyaml Gem (2.0.2)
+Pkcs11 Gem (0.2.4)
+Ruby (1.9.3.3p484)
+```
+
+#### Mac OS X
+
+```
+Mac OS X (10.8.5)
+hiera-eyaml (2.0.2)
+ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
+```
+### Example Puppet Configuration
+
+```puppet
+
+  # Example with chil mode
+  $pkcs11_config = [
+    ':eyaml:',
+    '  :datadir: "/etc/puppetlabs/puppet/environments/%{environment}/"',
+    '  :extension: "yaml"',
+    '  :encrypt_method: "pkcs11"',
+    '  :pkcs11_chil_softcard: "puppet-hiera-uat"',
+    '  :pkcs11_chil_rsakey: "rsa-puppethierauatkey"',
+    '  :pkcs11_hsm_password: "Thi$$is@rellyl0ngp@$$phase"',
+    '  :pkcs7_private_key: "/etc/puppetlabs/puppet/secure/keys/private_key.pkcs7.pem"',
+    '  :pkcs7_public_key: "/etc/puppetlabs/puppet/secure/keys/public_key.pkcs7.pem"',
+  ]
+
+  File {
+    owner  => 'pe-puppet',
+    group  => 'pe-puppet',
+    mode    => '0750',
+  }
+
+  # This is an example using http://forge.puppetlabs.com/hunner/hiera
+  class { '::hiera':
+    backends     => [
+      'eyaml',
+      'yaml',
+    ],
+    datadir      => '/etc/puppetlabs/puppet/environments/%{environment}/',
+    hierarchy    => [
+      'servers/%{::clientcert}',
+      '%{environment}',
+      'global',
+    ],
+    extra_config => join($pkcs11_config,"\n"),
+    require      => Package['hiera-eyaml'],
+  }
+
+  # This should only be used if you have a gem server
+  # or access to gem server that has these gems
+  package { ['hiera-eyaml','hiera-eyaml-pkcs11']:
+    ensure       => installed,
+    provider     => 'pe_gem',
+    require      => File['gemrc'],
+  }
+
+  # Create a global gemrc for Puppet Enterprise to add the local gem source
+  # See http://projects.puppetlabs.com/issues/18053#note-12 for more information.
+  file { '/opt/puppet/etc':
+    ensure => 'directory',
+    owner  => 'root',
+    group  => '0',
+    mode   => '0755',
+  }
+
+  file { 'gemrc':
+    ensure  => 'file',
+    path    => '/opt/puppet/etc/gemrc',
+    owner   => 'root',
+    group   => '0',
+    mode    => '0644',
+    content => "---\nupdate_sources: true\n:sources:\n- http://your.internal.gem.server.com/rubygems/\n",
+  }
+
+  # This is only required if you want pkcs7 functional as well
+  # hiera 1.3 does allow for variable interpolation function
+  # calls so you could encrypt pkcs11_hsm_password with pkcs7
+  # Note the use of ssl instead of "secure" in the path as
+  # is the default in the eyaml README file.
+
+  exec { 'create_keypair':
+    user    => 'pe-puppet',
+    path    => "${::path}:/opt/puppet/bin",
+    cwd     => '/etc/puppetlabs/puppet/ssl',
+    command => 'eyaml createkeys',
+    creates => '/etc/puppetlabs/puppet/ssl/keys/private_key.pkcs7.pem',
+    before  =>  File['/etc/puppetlabs/puppet/ssl/keys'],
+    require =>  [ Package['heira-eyaml-pkcs11'], Package['hiera-eyaml']],
+  }
+
+```
 
 ## Contributing
 
