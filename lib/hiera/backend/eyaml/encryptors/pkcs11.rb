@@ -119,7 +119,7 @@ class Hiera
             -keyform engine \
             -encrypt | /usr/bin/base64"
             
-            decrypt = "echo #{Shellwords.shellescape(Base64.encode64(text))} | base64 -d |
+            decrypt = "echo #{Shellwords.shellescape(Base64.encode64(text))} | /usr/bin/base64 -d |
             /opt/nfast/bin/ppmk --preload #{Shellwords.shellescape(chil_softcard)} /usr/bin/openssl rsautl \
              -engine chil \
             -inkey #{Shellwords.shellescape(chil_rsakey)} \
