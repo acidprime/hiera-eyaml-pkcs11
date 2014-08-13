@@ -227,11 +227,12 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
       'global',
     ],
     extra_config => join($pkcs11_config,"\n"),
-    require      => Package['hiera-eyaml'],
+    require      => [ Package['heira-eyaml-pkcs11'], Package['hiera-eyaml']],
   }
 
   # This should only be used if you have a gem server
   # or access to gem server that has these gems
+  # If you are using rubygems.org then remove gemrc references
   package { ['hiera-eyaml','hiera-eyaml-pkcs11']:
     ensure       => installed,
     provider     => 'pe_gem',
@@ -268,8 +269,7 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
     cwd     => '/etc/puppetlabs/puppet/ssl',
     command => 'eyaml createkeys',
     creates => '/etc/puppetlabs/puppet/ssl/keys/private_key.pkcs7.pem',
-    before  =>  File['/etc/puppetlabs/puppet/ssl/keys'],
-    require =>  [ Package['heira-eyaml-pkcs11'], Package['hiera-eyaml']],
+    require =>  Class['::hiera'],
   }
 
 ```
