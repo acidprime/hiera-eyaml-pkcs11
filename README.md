@@ -193,6 +193,9 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
 ```puppet
 
   # Example with chil mode
+  # Note the use of ssl instead of "secure" in the pkcs7 path as
+  # is the default in the eyaml README file. This is just an example
+
   $pkcs11_config = [
     ':eyaml:',
     '  :datadir: "/etc/puppetlabs/puppet/environments/%{environment}/"',
@@ -201,8 +204,8 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
     '  :pkcs11_chil_softcard: "puppet-hiera-uat"',
     '  :pkcs11_chil_rsakey: "rsa-puppethierauatkey"',
     '  :pkcs11_hsm_password: "Thi$$is@rellyl0ngp@$$phase"',
-    '  :pkcs7_private_key: "/etc/puppetlabs/puppet/secure/keys/private_key.pkcs7.pem"',
-    '  :pkcs7_public_key: "/etc/puppetlabs/puppet/secure/keys/public_key.pkcs7.pem"',
+    '  :pkcs7_private_key: "/etc/puppetlabs/puppet/ssl/keys/private_key.pkcs7.pem"',
+    '  :pkcs7_public_key: "/etc/puppetlabs/puppet/ssl/keys/public_key.pkcs7.pem"',
   ]
 
   File {
