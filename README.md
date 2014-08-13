@@ -60,7 +60,7 @@ This mode uses the pkcs11 shared object libraries to natively communicate with t
 ### Example Usage
 
 ```shell
-/opt/puppet/bin/eyaml encrypt \
+eyaml encrypt \
 -s 'mysecrettext' \
 --encrypt-method pkcs11 \
 --pkcs11-mode pkcs11 \
@@ -97,7 +97,7 @@ This mode uses the "chil" engine support in the openssl cli to preload a given s
 ### Example Usage
 
 ```shell
-/opt/puppet/bin/eyaml encrypt \
+eyaml encrypt \
 -s 'mysecrettext' \
 --encrypt-method pkcs11 \
 --pkcs11-mode chil \
@@ -131,7 +131,7 @@ This mode uses the openssl gem to allow for offline encryption to take place usi
 | public_key                   | --pkcs11-public_key    | Path to public PEM file |
 
 ```shell
-/opt/puppet/bin/eyaml encrypt \
+eyaml encrypt \
 -s 'mysecrettext' \
 --encrypt-method pkcs11 \
 --pkcs11-mode openssl \
