@@ -2,8 +2,8 @@
 
 This gem adds an encryptor called pkcs11 to the hiera eyaml utility.
 It was designed to be used with a Thales nshield connect. It can communicate
-with the HSM using pkcs11 via the pkcs11 gem or chil by shelling out to the 
-openssl binaries. The different operation modes were designed to be as 
+with the HSM using pkcs11 via the pkcs11 gem or chil by shelling out to the
+openssl binaries. The different operation modes were designed to be as
 forward compatible as possible when using Puppet Enterprise 3.4 and higher.
 Native gems with C extensions in jruby which will be the stack calling hiera
 as soon as that JVM master is included in Puppet Enterprise.
@@ -14,24 +14,24 @@ You can build this gem using:
 
 Add this line to your application's Gemfile:
 
-    `gem 'hiera-eyaml-pkcs11'`
+    gem 'hiera-eyaml-pkcs11'
 
 And then execute:
 
-    `$ bundle`
+    $ bundle
 
 Or install it yourself as:
 
-    `$ gem install hiera-eyaml-pkcs11`
+    $ gem install hiera-eyaml-pkcs11
 
     # If you plan on using pkcs11 support directly
     # This is specified as a development dependency and thus not auto installed
-    `$ gem install pkcs11`
+    $ gem install pkcs11
 
     # If you plan on using the local openssl mode
     # This is specified as a development dependency and thus not auto installed
     # ( Likely already included in your distribution )
-    `$ gem install openssl`
+    $ gem install openssl
 
 
 # Usage
@@ -43,11 +43,13 @@ This gem has three operational modes.
 This mode uses the pkcs11 shared object libraries to natively communicate with the hsm using pkcs11.
 
 ### Typical parameters
+
 |Configuration file parameter|Command line parameter |Description             |
 |pkcs11_key_label            |--pkcs11-key-label     | Pubic/Private key label|
 |pkcs11_hsm_password         |--pkcs11-hsm-password  | Passphrase for softcard|
 
 ### Optional parameters
+
 |Configuration file parameter|Command line parameter |Description             |
 |pkcs11_hsm_usertype         |--pkcs11-hsm-user      |"USER" or "SO" no prefix|
 |pkcs11_hsm_slot_id          |--pkcs11-hsm-slot-id   |Slot id of the softcard |
@@ -79,6 +81,7 @@ _Note: The difference of dash vs underscore in the key names_
 This mode uses the "chil" engine support in the openssl cli to preload a given softcard using the passphase.
 
 ### Typical parameters
+
 |Configuration file parameter|Command line parameter |Description             |
 |pkcs11_chil_softcard        |--pkcs11-chil-softcard |Name of softcard to use |
 |pkcs11_chil_rsakey          |--pkcs11-chil-rsakey   |Name of rsa key to use  |
