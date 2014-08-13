@@ -44,18 +44,18 @@ This mode uses the pkcs11 shared object libraries to natively communicate with t
 
 ### Typical parameters
 
-|Configuration file parameter|Command line parameter |Description             |
-| ---------------- | -----------------------------------------                |
-|pkcs11_key_label            |--pkcs11-key-label     | Pubic/Private key label|
-|pkcs11_hsm_password         |--pkcs11-hsm-password  | Passphrase for softcard|
+| Configuration file parameter | Command line parameter | Description             |
+| ---------------------------- | ---------------------- | ----------------------- |
+| pkcs11_key_label             | --pkcs11-key-label     | Pubic/Private key label |
+| pkcs11_hsm_password          | --pkcs11-hsm-password  | Passphrase for softcard |
 
 ### Optional parameters
 
-|Configuration file parameter|Command line parameter |Description             |
-| ---------------- | -----------------------------------------                |
-|pkcs11_hsm_usertype         |--pkcs11-hsm-user      |"USER" or "SO" no prefix|
-|pkcs11_hsm_slot_id          |--pkcs11-hsm-slot-id   |Slot id of the softcard |
-|pkcs11_hsm_library          |--pkcs11-hsm-library   | Path to HSM .so  file  |
+| Configuration file parameter | Command line parameter | Description              |
+| ---------------------------- | ---------------------- | ------------------------ |
+| pkcs11_hsm_usertype          | --pkcs11-hsm-user      | "USER" or "SO" no prefix |
+| pkcs11_hsm_slot_id           | --pkcs11-hsm-slot-id   | Slot id of the softcard  |
+| pkcs11_hsm_library           | --pkcs11-hsm-library   |  Path to HSM .so  file   |
 
 ### Example Usage
 
@@ -87,11 +87,11 @@ This mode uses the "chil" engine support in the openssl cli to preload a given s
 
 ### Typical parameters
 
-|Configuration file parameter|Command line parameter |Description             |
-| ---------------- | -----------------------------------------                |
-|pkcs11_chil_softcard        |--pkcs11-chil-softcard |Name of softcard to use |
-|pkcs11_chil_rsakey          |--pkcs11-chil-rsakey   |Name of rsa key to use  |
-|pkcs11_hsm_password         |--pkcs11-hsm-password  |Passphrase for softcard |
+| Configuration file parameter | Command line parameter  | Description             |
+| ---------------------------- | ----------------------  | ----------------------- |
+| pkcs11_chil_softcard         | --pkcs11-chil-softcard  | Name of softcard to use |
+| pkcs11_chil_rsakey           | --pkcs11-chil-rsakey    | Name of rsa key to use  |
+| pkcs11_hsm_password          | --pkcs11-hsm-password   | Passphrase for softcard |
 
 
 ### Example Usage
@@ -126,9 +126,9 @@ This mode uses the openssl gem to allow for offline encryption to take place usi
 
 ### Typical parameters
 
-|Configuration file parameter|Command line parameter |Description             |
-| ---------------- | -----------------------------------------                |
-|public_key                  |--pkcs11-public_key    |Path to public PEM file |
+| Configuration file parameter | Command line parameter | Description             |
+| ---------------------------  | ---------------------- | ----------------------- |
+| public_key                   | --pkcs11-public_key    | Path to public PEM file |
 
 ```shell
 /opt/puppet/bin/eyaml encrypt \
