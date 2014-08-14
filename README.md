@@ -196,7 +196,7 @@ hiera-eyaml (2.0.2)
 Ruby (1.9.3.3p484)
 ```
 
-### CHIL PKCS11 Dual Configuration Example
+# CHIL PKCS11 Dual Configuration Example
 In the event you want to swith back and forth between chil and pkcs11 the following would be a universal example:
 
 ### Example Usage
