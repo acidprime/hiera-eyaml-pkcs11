@@ -197,16 +197,19 @@ Ruby (1.9.3.3p484)
 ```
 
 # CHIL PKCS11 Dual Configuration Example
-In the event you want to swith back and forth between chil and pkcs11 the following would be a universal example:
+In the event you want to switch back and forth between chil and pkcs11 the following would be a universal example:
 
 ### Example Usage
 
 ```shell
+MODE="chil"
 eyaml encrypt \
 -s 'mysecrettext' \
---encrypt-method pkcs11 \
+--encrypt-method $MODE \
 --pkcs11-mode pkcs11 \
 --pkcs11-key-label 'puppet-hiera-uat-key' \
+--pkcs11-chil-softcard 'puppet-hiera-uat' \
+--pkcs11-chil-rsakey 'rsa-puppethierauatkey' \
 --pkcs11-hsm-password 'Thi$$is@rellyl0ngp@$$phase'
 ```
 
@@ -229,9 +232,6 @@ eyaml encrypt \
   :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
   ...
 ```
-
-
-
 
 ### Example Puppet Configuration
 
