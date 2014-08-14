@@ -217,7 +217,7 @@ class Hiera
           def self.openssl(action,text)
 
             # This mode allows offline encyption simply using the openssl gem
-            # and a RSA gem. This method will not work master side in PE 3.4
+            # and a RSA public key. This method will not work master side in PE 3.4
             # likely (see notes in self.session) however it will work on desktops
             # Such as Mac OS X , to allow users to encrypt values.
 
