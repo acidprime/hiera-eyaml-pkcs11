@@ -7,7 +7,7 @@ openssl binaries. The different operation modes were designed to be as
 forward compatible as possible when using Puppet Enterprise 3.4 and higher.
 Native gems with C extensions in jruby which will not work in PE 3.4 as that stack will be calling hiera as soon as that JVM master is included in Puppet Enterprise.
 
-You can build this gem using ( if building on windows under PE `gem install bundle` first):
+You can build this gem using ( if building on windows under PE `gem install bundle` first):  
     `rake build`
 The gem will be build in `.pkg/` directory and can be installed with
     `gem install /path/to/the.gem`
