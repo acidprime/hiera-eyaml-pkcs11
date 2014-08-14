@@ -14,10 +14,6 @@ class Hiera
                                 :type    => :string,
                                 :default => 'chil' },
 
-            :hsm_slot_id   => { :desc    => "The slot to use for the session (pkcs11 mode only)",
-                                :type    => :integer,
-                                :default => 4 },
-
             :key_label     => { :desc    => "The label of the public/private key to use (pkcs11 mode only)",
                                 :type    => :string,
                                 :default => "badkeylabel" },
@@ -33,6 +29,10 @@ class Hiera
             :public_key    => { :desc    => "Local path to the rsa public key (openssl mode only)",
                                 :type    => :string,
                                 :default => "./keys/public_key.pkcs11.pem" },
+
+            :hsm_slot_id   => { :desc    => "The slot to use for the session (pkcs11 mode only)",
+                                :type    => :integer,
+                                :default => 4 },
 
             :hsm_library   => { :desc    => "HSM Shared object library path (pkcs11 mode only)",
                                 :type    => :string,
@@ -52,9 +52,9 @@ class Hiera
           # Eyaml encryptor methods
 
           def self.encrypt(plaintext)
-            
+
              self.checksize(plaintext)
-             
+
              case self.option(:mode)
              when 'chil'
                result = self.chil(:encrypt,plaintext)
@@ -124,7 +124,7 @@ class Hiera
             chil_softcard  = self.option :chil_softcard
             chil_rsakey    = self.option :chil_rsakey
 
-            # TODO: Could turn this into an array and use << as the commands are about the same. 
+            # TODO: Could turn this into an array and use << as the commands are about the same.
 
             encrypt = "echo #{Shellwords.shellescape(text)} |
             /opt/nfast/bin/ppmk --preload #{Shellwords.shellescape(chil_softcard)} /usr/bin/openssl rsautl \
@@ -132,7 +132,7 @@ class Hiera
             -inkey #{Shellwords.shellescape(chil_rsakey)} \
             -keyform engine \
             -encrypt | /usr/bin/base64"
-            
+
             decrypt = "echo #{Shellwords.shellescape(Base64.encode64(text))} | /usr/bin/base64 -d |
             /opt/nfast/bin/ppmk --preload #{Shellwords.shellescape(chil_softcard)} /usr/bin/openssl rsautl \
              -engine chil \
@@ -145,12 +145,12 @@ class Hiera
             # after the header. This has been tested with multi line input
 
             if action == :encrypt
-               command = encrypt 
-               regex   = /(.*engine "chil" set\..*\n)([\r\n\S]+)/ 
+               command = encrypt
+               regex   = /(.*engine "chil" set\..*\n)([\r\n\S]+)/
             elsif action == :decrypt
-               command = decrypt 
+               command = decrypt
                regex   = /(.*engine "chil" set\..*\n)(.*(\n.*)?)/
-            end 
+            end
 
             # Type the passphase in the session and run the command with the
             # stdin being the plaintext or cryptogram. The encrypted value
@@ -169,7 +169,7 @@ class Hiera
               else
                 raise "Unable to parse output:\n #{output} \n with regex #{regex.to_s}"
               end
-              return cryptogram 
+              return cryptogram
             end
           end
 
@@ -186,7 +186,7 @@ class Hiera
             hsm_password  = self.option :hsm_password
             hsm_library   = self.option :hsm_library
             hsm_slot_id   = self.option :hsm_slot_id
-	    
+
             key_label     = self.option :key_label
 
             # Load the shared object library from the vendor
@@ -213,7 +213,7 @@ class Hiera
               result
             end
           end
-          
+
           def self.openssl(action,text)
 
             # This mode allows offline encyption simply using the openssl gem
@@ -222,15 +222,14 @@ class Hiera
             # Such as Mac OS X , to allow users to encrypt values.
 
             require 'openssl'
-            public_key_path = self.option :public_key 
+            public_key_path = self.option :public_key
             public_key      = File.open(public_key_path,"rb").read
-            puts "Found Public key: #{public_key}" 
             rsa = OpenSSL::PKey::RSA.new(public_key)
 
             if action == :encrypt
               result = rsa.public_encrypt(text)
             elsif action == :decrypt
-             raise "Decryption is not supported using openssl as you don't have access to the hsm" 
+             raise "Decryption is not supported using openssl as you don't have access to the hsm"
             end
             result
           end
