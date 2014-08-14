@@ -57,6 +57,7 @@ This mode uses the pkcs11 shared object libraries to natively communicate with t
 | pkcs11_hsm_slot_id           | --pkcs11-hsm-slot-id   | Slot id of the softcard  |
 | pkcs11_hsm_library           | --pkcs11-hsm-library   |  Path to HSM .so  file   |
 
+_Note: Params are only optional on the command line_
 ### Example Usage
 
 ```shell
@@ -76,6 +77,9 @@ eyaml encrypt \
   :pkcs11_mode: 'pkcs11'
   :pkcs11_key_label: 'puppet-hiera-uat-key'
   :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
+  :pkcs11_hsm_usertype: 'USER'
+  :pkcs11_hsm_slot_id: 4
+  :pkcs11_hsm_library: '/opt/nfast/toolkits/pkcs11/libcknfast.so'
   :extension: 'yaml'
 ```
 
