@@ -161,18 +161,6 @@ eyaml encrypt \
 --pkcs11-mode openssl \
 --pkcs11-public-key ~/puppet-hiera-uat-pub.pem
 ```
-
-### Example hiera.yaml Entry
-```yaml
-:eyaml:
-  :datadir: /etc/puppetlabs/puppet/hiera/%{environment}/
-  :pkcs11_mode: 'openssl'
-  :pkcs11_public_key: '/etc/puppetlabs/puppet/ssl/keys/puppet-hiera-uat-pub.pem'
-  :extension: 'yaml'
-```
-
-_Note: The difference of dash vs underscore in the key names_
-
 #### Linux
 
 This mode was tested with:
