@@ -38,7 +38,7 @@ Or install it yourself as:
 
 # Usage
 
-This gem has three operational modes: `pkcs11`,`chil` and `openssl`
+This gem has three operational modes: [pkcs11](#pkcs11-mode),[chil](#chil-mode) and [openssl](#openssl-mode)
 
 ## PKCS11 mode
 
