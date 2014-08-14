@@ -183,6 +183,16 @@ Mac OS X (10.8.5)
 hiera-eyaml (2.0.2)
 ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
 ```
+
+#### Windows
+
+```
+Windows Server 2012R2
+Puppet 3.6.2 (Puppet Enterprise 3.3.0)
+hiera-eyaml (2.0.2)
+Ruby (1.9.3.3p484)
+```
+
 ### Example Puppet Configuration
 
 ```puppet
