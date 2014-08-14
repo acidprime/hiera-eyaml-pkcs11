@@ -81,7 +81,7 @@ eyaml encrypt \
   :pkcs11_hsm_usertype: 'USER'
   :pkcs11_hsm_slot_id: 4
   :pkcs11_hsm_library: '/opt/nfast/toolkits/pkcs11/libcknfast.so'
-  :extension: 'yaml'
+  ...
 ```
 
 _Note: The difference of dash vs underscore in the key names_
@@ -130,7 +130,7 @@ eyaml encrypt \
   :pkcs11_chil_softcard: 'puppet-hiera-uat'
   :pkcs11_chil_rsakey: 'rsa-puppethierauatkey'
   :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
-  :extension: 'yaml'
+  ...
 ```
 
 _Note: The difference of dash vs underscore in the key names_
@@ -195,6 +195,43 @@ Puppet 3.6.2 (Puppet Enterprise 3.3.0)
 hiera-eyaml (2.0.2)
 Ruby (1.9.3.3p484)
 ```
+
+### CHIL/PKCS11 Dual Configuration Example
+In the event you want to swith back and forth between chil and pkcs11 the following would be a universal example:
+
+### Example Usage
+
+```shell
+eyaml encrypt \
+-s 'mysecrettext' \
+--encrypt-method pkcs11 \
+--pkcs11-mode pkcs11 \
+--pkcs11-key-label 'puppet-hiera-uat-key' \
+--pkcs11-hsm-password 'Thi$$is@rellyl0ngp@$$phase'
+```
+
+### Example hiera.yaml Entry
+
+```yaml
+:eyaml:
+  :datadir: /etc/puppetlabs/puppet/hiera/%{environment}/
+  # Change the line below to swap modes to 'chil'
+  :pkcs11_mode: 'pkcs11'
+  # Pkcs11 mode configuration options
+  :pkcs11_key_label: 'puppet-hiera-uat-key'
+  :pkcs11_hsm_usertype: 'USER'
+  :pkcs11_hsm_slot_id: 4
+  :pkcs11_hsm_library: '/opt/nfast/toolkits/pkcs11/libcknfast.so'
+  # Chil mode configuration options
+  :pkcs11_chil_softcard: 'puppet-hiera-uat'
+  :pkcs11_chil_rsakey: 'rsa-puppethierauatkey'
+  # Shared Configuration Options
+  :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
+  ...
+```
+
+
+
 
 ### Example Puppet Configuration
 
