@@ -1,16 +1,16 @@
 # Hiera::Eyaml::Pkcs11
 
-This gem adds an encryptor called pkcs11 to the hiera eyaml utility.
-It was designed to be used with a Thales nshield connect. It can communicate
-with the HSM using pkcs11 via the pkcs11 gem or chil by shelling out to the
+This gem adds an encryptor called pkcs11 to the [hiera-eyaml](https://github.com/TomPoulton/hiera-eyaml) utility.
+It was designed to be used with a [Thales nshield connect](https://www.thales-esecurity.com/products-and-services/products-and-services/hardware-security-modules/general-purpose-hsms/nshield-connect). It can communicate
+with the HSM using pkcs11 via the [pkcs11 gem](https://github.com/larskanis/pkcs11) or [chil](https://www.openssl.org/docs/crypto/engine.html) by shelling out to the
 openssl binaries. The different operation modes were designed to be as
 forward compatible as possible when using Puppet Enterprise 3.4 and higher.
-Native gems with C extensions in jruby which will be the stack calling hiera
-as soon as that JVM master is included in Puppet Enterprise.
+Native gems with C extensions in jruby which will not work in PE 3.4 as that stack will be calling hiera as soon as that JVM master is included in Puppet Enterprise.
 
-You can build this gem using:
+You can build this gem using ( if building on windows under PE `gem install bundle` first):
     `rake build`
-
+The gem will be build in `.pkg/` directory and can be installed with
+    `gem install /path/to/the.gem`
 
 Add this line to your application's Gemfile:
 
@@ -30,7 +30,7 @@ Or install it yourself as:
 
     # If you plan on using the local openssl mode
     # This is specified as a development dependency and thus not auto installed
-    # ( Likely already included in your distribution )
+    # ( Likely already included in your distribution of ruby and this is not necessary )
     $ gem install openssl
 
 
@@ -58,6 +58,7 @@ This mode uses the pkcs11 shared object libraries to natively communicate with t
 | pkcs11_hsm_library           | --pkcs11-hsm-library   |  Path to HSM .so  file   |
 
 _Note: Params are only optional on the command line_
+
 ### Example Usage
 
 ```shell
@@ -98,7 +99,7 @@ Ruby (1.9.3.3p484)
 #CHIL mode
 
 This mode uses the "chil" engine support in the openssl cli to preload a given softcard using the passphase.
-
+Is was designed to "shell out" to be more compatible with jruby in the event the pkcs11 gem does not work.
 ### Typical parameters
 
 | Configuration file parameter | Command line parameter  | Description             |
@@ -147,7 +148,7 @@ Ruby (1.9.3.3p484)
 # Openssl mode
 
 This mode uses the openssl gem to allow for offline encryption to take place using just the export rsa public key.
-
+This mode is meant to be used by developers on their workstations to encrypt values.
 ### Typical parameters
 
 | Configuration file parameter | Command line parameter | Description             |
@@ -164,9 +165,11 @@ eyaml encrypt \
 --pkcs11-mode openssl \
 --pkcs11-public-key ~/puppet-hiera-uat-pub.pem
 ```
-#### Linux
 
 This mode was tested with:
+
+#### Linux
+
 
 ```
 Red Hat Enterprise Linux release 6.5 (Santiago)
@@ -200,6 +203,15 @@ Ruby (1.9.3.3p484)
   # Example with chil mode
   # Note the use of ssl instead of "secure" in the pkcs7 path as
   # is the default in the eyaml README file. This is just an example
+  # You could do variable interpolation for the password, and use
+  # hiera to store its value. However if the goal is to use pkcs7
+  # to encrypt the pkcs11 password, pkcs7 would need to be fully 
+  # configured prior to this step. That is a chicken before the
+  # egg scenerio if using the exec below to create keys in the first
+  # run. One option would be to specifiy an invalid default i.e.
+  # hiera('hsm_password','PKCS7_NOT_CONFIGURED'). This should allow
+  # The first run to cleaning place compile and configure pkcs7
+  # and the subsequent run to configure pkcs11
 
   $pkcs11_config = [
     ':eyaml:',
