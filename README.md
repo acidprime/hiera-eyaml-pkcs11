@@ -204,7 +204,7 @@ ruby 1.8.7 (2012-02-08 patchlevel 358) [universal-darwin12.0]
     ':eyaml:',
     '  :datadir: "/etc/puppetlabs/puppet/environments/%{environment}/"',
     '  :extension: "yaml"',
-    '  :encrypt_method: "pkcs11"',
+    '  :pkcs11_mode: "chil"',
     '  :pkcs11_chil_softcard: "puppet-hiera-uat"',
     '  :pkcs11_chil_rsakey: "rsa-puppethierauatkey"',
     '  :pkcs11_hsm_password: "Thi$$is@rellyl0ngp@$$phase"',
