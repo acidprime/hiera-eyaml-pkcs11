@@ -12,7 +12,7 @@ You can build this gem using ( if building on windows under PE `gem install bund
 The gem will be build in `.pkg/` directory and can be installed with
     `gem install /path/to/the.gem`
 
-Add this line to your application's Gemfile:
+or add this line to your application's Gemfile:
 
     gem 'hiera-eyaml-pkcs11'
 
