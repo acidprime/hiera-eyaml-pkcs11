@@ -152,7 +152,10 @@ This mode uses the openssl gem to allow for offline encryption to take place usi
 
 | Configuration file parameter | Command line parameter | Description             |
 | ---------------------------  | ---------------------- | ----------------------- |
-| public_key                   | --pkcs11-public_key    | Path to public PEM file |
+| N/A                          | --pkcs11-public_key    | Path to public PEM file |
+
+
+### Example Usage
 
 ```shell
 eyaml encrypt \
