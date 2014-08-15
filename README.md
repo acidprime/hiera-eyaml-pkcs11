@@ -283,7 +283,7 @@ eyaml encrypt \
       'global',
     ],
     extra_config => join($pkcs11_config,"\n"),
-    require      => [ Package['heira-eyaml-pkcs11'], Package['hiera-eyaml']],
+    require      => [ Package['hiera-eyaml-pkcs11'], Package['hiera-eyaml']],
   }
 
   # This should only be used if you have a gem server
