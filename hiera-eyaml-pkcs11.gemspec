@@ -22,5 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pkcs11", "~> 0.2.4"
   spec.add_development_dependency "rake"
 
-  spec.add_dependency "hiera-eyaml", "= 2.0.2"
+  spec.add_dependency "hiera-eyaml", ">= 2.0.2"
 end
