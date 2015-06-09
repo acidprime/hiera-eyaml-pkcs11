@@ -125,8 +125,8 @@ _Note: Params are only optional on the command line_
 ```shell
 eyaml encrypt \
 -s 'mysecrettext' \
---encrypt-method 'mri-pkcs11' \
---pkcs11-mode pkcs11 \
+--encrypt-method pkcs11 \
+--pkcs11-mode 'mri-pkcs11' \
 --pkcs11-key-label 'puppet-hiera-uat-key' \
 --pkcs11-hsm-password 'Thi$$is@rellyl0ngp@$$phase'
 ```
