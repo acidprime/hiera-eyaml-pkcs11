@@ -10,7 +10,7 @@ class Hiera
         class Pkcs11 < Encryptor
           self.options = {
 
-            :mode          => { :desc    => "What mode <pkcs11|chil|openssl> should be used to (de|en)crypt the values",
+            :mode          => { :desc    => "What mode <pkcs11|mri-pkcs11|chil|openssl> should be used to (de|en)crypt the values",
                                 :type    => :string,
                                 :default => 'chil' },
 
@@ -60,6 +60,8 @@ class Hiera
                result = self.chil(:encrypt,plaintext)
              when 'pkcs11'
                result = self.session(:encrypt,plaintext)
+             when 'mri-pkcs11'
+               result = self.mri_pkcs11(:encrypt,plaintext)
              when 'openssl'
                result = self.openssl(:encrypt,plaintext)
              else
@@ -75,6 +77,8 @@ class Hiera
                result = self.chil(:decrypt,ciphertext)
              when 'pkcs11'
                result = self.session(:decrypt,ciphertext)
+             when 'mri-pkcs11'
+                 result = self.mri_pkcs11(:decrypt,plaintext)
              when 'openssl'
                result = self.openssl(:decrypt,ciphertext)
              else
@@ -174,7 +178,6 @@ class Hiera
           end
 
           def self.session(action,text)
-
             # This does a direct pkcs11 call through the gem. This will likely not work
             # in Puppet Enterprise 3.4 because gems with native c extentions will not work
             # with jruby and thats what the master will be running when it calls hiera.
@@ -211,6 +214,21 @@ class Hiera
               end
               session.logout
               result
+            end
+          end
+
+          def self.mri_session(action, text)
+            require 'shellwords'
+            require 'hiera/backend/eyaml/encryptors/pkcs11/jruby_process_wrapper'
+
+            process = ProcessWrapper.execute("/opt/puppet/bin/ruby",
+                                             ["-rhiera/backend/eyaml/encryptors/pkcs11",
+                                              "-e",
+                                              "puts Hiera::Backend::Eyaml::Encryptors::Pkcs11.session(#{action.inspect}, '#{Shellwords.shellescape(text)}')"])
+            if process.exit_code == 0
+              process.output_string.strip
+            else
+              raise "Error performing #{action}: '#{process.error_string}'"
             end
           end
 
