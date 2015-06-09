@@ -38,7 +38,7 @@ Or install it yourself as:
 
 # Usage
 
-This gem has three operational modes: [pkcs11](#pkcs11-mode),[chil](#chil-mode) and [openssl](#openssl-mode)
+This gem has four operational modes: [pkcs11](#pkcs11-mode),[mri-pkcs11](#mri-pkcs11-mode),[chil](#chil-mode) and [openssl](#openssl-mode)
 
 ## PKCS11 mode
 
@@ -98,6 +98,55 @@ Pkcs11 Gem (0.2.4)
 Ruby (1.9.3.3p484)
 ```
 
+## MRI PKCS11 mode
+
+This mode attempts to work around puppetservers (jruby's) inability to use native gems by wrapping the session code.
+It uses the same and arguments configuration as the [pkcs11](#pkcs11-mode) above.
+
+### Typical parameters
+
+| Configuration file parameter | Command line parameter | Description             |
+| ---------------------------- | ---------------------- | ----------------------- |
+| pkcs11_key_label             | --pkcs11-key-label     | Pubic/Private key label |
+| pkcs11_hsm_password          | --pkcs11-hsm-password  | Passphrase for softcard |
+
+### Optional parameters
+
+| Configuration file parameter | Command line parameter | Description              |
+| ---------------------------- | ---------------------- | ------------------------ |
+| pkcs11_hsm_usertype          | --pkcs11-hsm-user      | "USER" or "SO" no prefix |
+| pkcs11_hsm_slot_id           | --pkcs11-hsm-slot-id   | Slot id of the softcard  |
+| pkcs11_hsm_library           | --pkcs11-hsm-library   |  Path to HSM .so  file   |
+
+_Note: Params are only optional on the command line_
+
+### Example Usage
+
+```shell
+eyaml encrypt \
+-s 'mysecrettext' \
+--encrypt-method 'mri-pkcs11' \
+--pkcs11-mode pkcs11 \
+--pkcs11-key-label 'puppet-hiera-uat-key' \
+--pkcs11-hsm-password 'Thi$$is@rellyl0ngp@$$phase'
+```
+
+### Example hiera.yaml Entry
+
+```yaml
+:eyaml:
+  :datadir: /etc/puppetlabs/puppet/hiera/%{environment}/
+  :pkcs11_mode: 'mri-pkcs11'
+  :pkcs11_key_label: 'puppet-hiera-uat-key'
+  :pkcs11_hsm_password: 'Thi$$is@rellyl0ngp@$$phase'
+  :pkcs11_hsm_usertype: 'USER'
+  :pkcs11_hsm_slot_id: 4
+  :pkcs11_hsm_library: '/opt/nfast/toolkits/pkcs11/libcknfast.so'
+  ...
+```
+
+_Note: The difference of dash vs underscore in the key names_
+
 #CHIL mode
 
 This mode uses the "chil" engine support in the openssl cli to preload a given softcard using the passphase.
@@ -144,7 +193,6 @@ Red Hat Enterprise Linux release 6.5 (Santiago)
 Puppet 3.6.2 (Puppet Enterprise 3.3.0)
 Hiera Eyaml Gem (2.0.2)
 Pkcs11 Gem (0.2.4)
-Ruby (1.9.3.3p484)
 ```
 
 # Openssl mode

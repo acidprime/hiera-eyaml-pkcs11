@@ -3,7 +3,7 @@ class Hiera
     module Eyaml
       module Encryptors
         module Pkcs11
-          VERSION = "1.0.2"
+          VERSION = "1.5.0"
         end
       end
     end
