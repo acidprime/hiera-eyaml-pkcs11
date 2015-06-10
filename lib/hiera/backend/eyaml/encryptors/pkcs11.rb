@@ -221,7 +221,9 @@ class Hiera
           def self.mri_session(action, text)
             require 'shellwords'
             require 'hiera/backend/eyaml/encryptors/pkcs11/jruby_process_wrapper'
-
+            
+            # This base64 encodes the value for the shell argument when its
+            # passed and then decodes it once the code is evaluated
             cmd = "puts Hiera::Backend::Eyaml::Encryptors::Pkcs11.session(#{action.inspect}, Base64.decode64('#{Shellwords.shellescape(Base64.encode64(text).strip)}'))"
 
             process = ProcessWrapper.execute("/opt/puppet/bin/ruby",
