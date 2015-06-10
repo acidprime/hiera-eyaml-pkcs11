@@ -2,6 +2,7 @@ require 'hiera/backend/eyaml/encryptor'
 require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
 require "rubygems"
+require 'base64'
 
 class Hiera
   module Backend
@@ -221,10 +222,12 @@ class Hiera
             require 'shellwords'
             require 'hiera/backend/eyaml/encryptors/pkcs11/jruby_process_wrapper'
 
+            cmd = "puts Hiera::Backend::Eyaml::Encryptors::Pkcs11.session(#{action.inspect}, Base64.decode64('#{Shellwords.shellescape(Base64.encode64(text).strip)}'))"
+
             process = ProcessWrapper.execute("/opt/puppet/bin/ruby",
                                              ["-rhiera/backend/eyaml/encryptors/pkcs11",
                                               "-e",
-                                              "puts Hiera::Backend::Eyaml::Encryptors::Pkcs11.session(#{action.inspect}, '#{Shellwords.shellescape(text)}')"])
+                                              cmd])
             if process.exit_code == 0
               process.output_string.strip
             else
