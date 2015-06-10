@@ -62,7 +62,7 @@ class Hiera
              when 'pkcs11'
                result = self.session(:encrypt,plaintext)
              when 'mri-pkcs11'
-               result = self.mri_pkcs11(:encrypt,plaintext)
+               result = self.mri_session(:encrypt,plaintext)
              when 'openssl'
                result = self.openssl(:encrypt,plaintext)
              else
@@ -79,7 +79,7 @@ class Hiera
              when 'pkcs11'
                result = self.session(:decrypt,ciphertext)
              when 'mri-pkcs11'
-                 result = self.mri_pkcs11(:decrypt,plaintext)
+                 result = self.mri_session(:decrypt,ciphertext)
              when 'openssl'
                result = self.openssl(:decrypt,ciphertext)
              else
