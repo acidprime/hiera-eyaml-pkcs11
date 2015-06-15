@@ -250,22 +250,33 @@ class Hiera
             string_command = [command].concat(args)
             full_command = string_command.join(" ")
             
-            captured_stdout = ''
-            captured_stderr = ''
-            exit_status = Open3.popen3(ENV, full_command) {|stdin, stdout, stderr, wait_thr|
-              pid = wait_thr.pid # pid of the started process.
-              stdin.close
-              captured_stdout = stdout.read
-              captured_stderr = stderr.read
-              wait_thr.value # Process::Status object returned.
-            }           
+            tries = 0
+            begin
+              captured_stdout = ''
+              captured_stderr = ''
+              exit_status = Open3.popen3(ENV, full_command) {|stdin, stdout, stderr, wait_thr|
+                pid = wait_thr.pid # pid of the started process.
+                stdin.close
+                captured_stdout = stdout.read
+                captured_stderr = stderr.read
+                wait_thr.value # Process::Status object returned.
+              }
 
-            std_error = captured_stderr
+              std_error = captured_stderr
 
-            unless exit_status.success? 
-              raise "Decrypt Error #{std_error}"
+              unless exit_status.success?
+                raise "Failed"
+            rescue
+              tries += 1
+              sleep(10 * tries)
+              if tries < 3
+                retry
+              else
+                raise "Decrypt Error #{std_error}"
+              end
+            else
+              output = captured_stdout
             end
-            output = captured_stdout
           end
 
           def self.openssl(action,text)
