@@ -266,6 +266,7 @@ class Hiera
 
               unless exit_status.success?
                 raise "Failed"
+              end
             rescue
               tries += 1
               sleep(10 * tries)
