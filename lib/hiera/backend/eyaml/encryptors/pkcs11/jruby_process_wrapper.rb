@@ -17,7 +17,7 @@ class ProcessWrapper
   attr_accessor :exit_code, :output_string, :error_string
 
   def self.execute(command, args)
-    process = Runtime.runtime.exec([command].concat(args).to_java(:string))
+    process = Runtime.runtime.exec([command].concat(args))
 
     out_string = StringWriter.new
     stdout_pump = StreamPump.new(process.input_stream, PrintWriter.new(out_string, true))

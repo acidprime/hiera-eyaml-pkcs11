@@ -220,21 +220,52 @@ class Hiera
 
           def self.mri_session(action, text)
             require 'shellwords'
-            require 'hiera/backend/eyaml/encryptors/pkcs11/jruby_process_wrapper'
+            require 'base64'
+            require 'open3'
             
+
+            hsm_usertype  = self.option :hsm_usertype
+            hsm_password  = self.option :hsm_password
+            hsm_library   = self.option :hsm_library
+            hsm_slot_id   = self.option :hsm_slot_id
+            key_label     = self.option :key_label
+
             # This base64 encodes the value for the shell argument when its
             # passed and then decodes it once the code is evaluated
-            cmd = "puts Hiera::Backend::Eyaml::Encryptors::Pkcs11.session(#{action.inspect}, Base64.decode64('#{Shellwords.shellescape(Base64.encode64(text).strip)}'))"
+            encoded_text = Base64.encode64(text).strip.tr("\r", "").tr("\n", "")
 
-            process = ProcessWrapper.execute("/opt/puppet/bin/ruby",
-                                             ["-rhiera/backend/eyaml/encryptors/pkcs11",
-                                              "-e",
-                                              cmd])
-            if process.exit_code == 0
-              process.output_string.strip
-            else
-              raise "Error performing #{action}: '#{process.error_string}'"
+            command = "/opt/puppet/bin/eyaml"                        
+            args = ["decrypt",
+            "-s 'ENC[PKCS11,#{encoded_text}]'",
+            "--encrypt-method pkcs11",
+            "--pkcs11-mode pkcs11",
+            "--pkcs11-key-label 'puppet-hiera-uat-key'",
+            "--pkcs11-hsm-password '#{hsm_password}'",
+            "--pkcs11-hsm-usertype '#{hsm_usertype}'",
+            "--pkcs11-hsm-library '#{hsm_library}'",
+            "--pkcs11-hsm-slot-id #{hsm_slot_id}",
+            "-q"
+            ]
+
+            string_command = [command].concat(args)
+            full_command = string_command.join(" ")
+            
+            captured_stdout = ''
+            captured_stderr = ''
+            exit_status = Open3.popen3(ENV, full_command) {|stdin, stdout, stderr, wait_thr|
+              pid = wait_thr.pid # pid of the started process.
+              stdin.close
+              captured_stdout = stdout.read
+              captured_stderr = stderr.read
+              wait_thr.value # Process::Status object returned.
+            }           
+
+            std_error = captured_stderr
+
+            unless exit_status.success? 
+              raise "Decrypt Error #{std_error}"
             end
+            output = captured_stdout
           end
 
           def self.openssl(action,text)
