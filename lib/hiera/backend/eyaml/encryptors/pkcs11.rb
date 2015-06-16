@@ -239,7 +239,7 @@ class Hiera
             "-s 'ENC[PKCS11,#{encoded_text}]'",
             "--encrypt-method pkcs11",
             "--pkcs11-mode pkcs11",
-            "--pkcs11-key-label 'puppet-hiera-uat-key'",
+            "--pkcs11-key-label '#{key_label}'",
             "--pkcs11-hsm-password '#{hsm_password}'",
             "--pkcs11-hsm-usertype '#{hsm_usertype}'",
             "--pkcs11-hsm-library '#{hsm_library}'",
