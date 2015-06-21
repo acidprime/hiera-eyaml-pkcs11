@@ -268,9 +268,9 @@ class Hiera
                 raise "Failed"
               end
             rescue
-              tries += 1
-              sleep(10 * tries)
-              if tries < 3
+              if tries < 6
+                tries += 1
+                sleep(3 * tries)
                 retry
               else
                 raise "Decrypt Error #{std_error}"
