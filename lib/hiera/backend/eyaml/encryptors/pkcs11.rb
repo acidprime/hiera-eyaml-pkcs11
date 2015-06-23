@@ -235,7 +235,7 @@ class Hiera
             encoded_text = Base64.encode64(text).strip.tr("\r", "").tr("\n", "")
 
             command = "/opt/puppet/bin/eyaml"                        
-            args = ["decrypt",
+            args = [action.to_s,
             "-s 'ENC[PKCS11,#{encoded_text}]'",
             "--encrypt-method pkcs11",
             "--pkcs11-mode pkcs11",
@@ -264,13 +264,13 @@ class Hiera
 
               std_error = captured_stderr
 
-              unless exit_status.success?
+              if !exit_status.success? || captured_stdout.to_s.strip.length == 0
                 raise "Failed"
               end
             rescue
-              if tries < 6
-                tries += 1
-                sleep(3 * tries)
+              tries += 1
+              sleep(3)
+              if tries < 10
                 retry
               else
                 raise "Decrypt Error #{std_error}"
